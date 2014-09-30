@@ -47,27 +47,26 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 
 public class OrthogonalTiledMapRenderer extends BatchTiledMapRenderer {
-	private float[] vertices = new float[20];
 
-	public OrthogonalTiledMapRenderer(TiledMap map) {
+	public OrthogonalTiledMapRenderer (TiledMap map) {
 		super(map);
 	}
 
-	public OrthogonalTiledMapRenderer(TiledMap map, Batch batch) {
+	public OrthogonalTiledMapRenderer (TiledMap map, Batch batch) {
 		super(map, batch);
 	}
 
-	public OrthogonalTiledMapRenderer(TiledMap map, float unitScale) {
+	public OrthogonalTiledMapRenderer (TiledMap map, float unitScale) {
 		super(map, unitScale);
 	}
 
-	public OrthogonalTiledMapRenderer(TiledMap map, float unitScale, Batch batch) {
+	public OrthogonalTiledMapRenderer (TiledMap map, float unitScale, Batch batch) {
 		super(map, unitScale, batch);
 	}
 
 	@Override
 	public void renderObject (MapObject object) {
-		
+
 	}
 
 	@Override
@@ -81,21 +80,21 @@ public class OrthogonalTiledMapRenderer extends BatchTiledMapRenderer {
 		final float layerTileWidth = layer.getTileWidth() * unitScale;
 		final float layerTileHeight = layer.getTileHeight() * unitScale;
 
-		final int col1 = Math.max(0, (int) (viewBounds.x / layerTileWidth));
-		final int col2 = Math.min(layerWidth, (int) ((viewBounds.x + viewBounds.width + layerTileWidth) / layerTileWidth));
+		final int col1 = Math.max(0, (int)(viewBounds.x / layerTileWidth));
+		final int col2 = Math.min(layerWidth, (int)((viewBounds.x + viewBounds.width + layerTileWidth) / layerTileWidth));
 
-		final int row1 = Math.max(0, (int) (viewBounds.y / layerTileHeight));
-		final int row2 = Math.min(layerHeight, (int) ((viewBounds.y + viewBounds.height + layerTileHeight) / layerTileHeight));				
+		final int row1 = Math.max(0, (int)(viewBounds.y / layerTileHeight));
+		final int row2 = Math.min(layerHeight, (int)((viewBounds.y + viewBounds.height + layerTileHeight) / layerTileHeight));
 
-		float y = row1 * layerTileHeight;
+		float y = row2 * layerTileHeight;
 		float xStart = col1 * layerTileWidth;
 		final float[] vertices = this.vertices;
 
-		for (int row = row1; row < row2; row++) {
+		for (int row = row2; row >= row1; row--) {
 			float x = xStart;
 			for (int col = col1; col < col2; col++) {
 				final TiledMapTileLayer.Cell cell = layer.getCell(col, row);
-				if(cell == null) {
+				if (cell == null) {
 					x += layerTileWidth;
 					continue;
 				}
@@ -108,8 +107,8 @@ public class OrthogonalTiledMapRenderer extends BatchTiledMapRenderer {
 
 					TextureRegion region = tile.getTextureRegion();
 
-					float x1 = x;
-					float y1 = y;
+					float x1 = x + tile.getOffsetX() * unitScale;
+					float y1 = y + tile.getOffsetY() * unitScale;
 					float x2 = x1 + region.getRegionWidth() * unitScale;
 					float y2 = y1 + region.getRegionHeight() * unitScale;
 
@@ -160,56 +159,56 @@ public class OrthogonalTiledMapRenderer extends BatchTiledMapRenderer {
 					}
 					if (rotations != 0) {
 						switch (rotations) {
-							case Cell.ROTATE_90: {
-								float tempV = vertices[V1];
-								vertices[V1] = vertices[V2];
-								vertices[V2] = vertices[V3];
-								vertices[V3] = vertices[V4];
-								vertices[V4] = tempV;
+						case Cell.ROTATE_90: {
+							float tempV = vertices[V1];
+							vertices[V1] = vertices[V2];
+							vertices[V2] = vertices[V3];
+							vertices[V3] = vertices[V4];
+							vertices[V4] = tempV;
 
-								float tempU = vertices[U1];
-								vertices[U1] = vertices[U2];
-								vertices[U2] = vertices[U3];
-								vertices[U3] = vertices[U4];
-								vertices[U4] = tempU;
-								break;
-							}
-							case Cell.ROTATE_180: {
-								float tempU = vertices[U1];
-								vertices[U1] = vertices[U3];
-								vertices[U3] = tempU;
-								tempU = vertices[U2];
-								vertices[U2] = vertices[U4];
-								vertices[U4] = tempU;
-								float tempV = vertices[V1];
-								vertices[V1] = vertices[V3];
-								vertices[V3] = tempV;
-								tempV = vertices[V2];
-								vertices[V2] = vertices[V4];
-								vertices[V4] = tempV;
-								break;
-							}
-							case Cell.ROTATE_270: {
-								float tempV = vertices[V1];
-								vertices[V1] = vertices[V4];
-								vertices[V4] = vertices[V3];
-								vertices[V3] = vertices[V2];
-								vertices[V2] = tempV;
+							float tempU = vertices[U1];
+							vertices[U1] = vertices[U2];
+							vertices[U2] = vertices[U3];
+							vertices[U3] = vertices[U4];
+							vertices[U4] = tempU;
+							break;
+						}
+						case Cell.ROTATE_180: {
+							float tempU = vertices[U1];
+							vertices[U1] = vertices[U3];
+							vertices[U3] = tempU;
+							tempU = vertices[U2];
+							vertices[U2] = vertices[U4];
+							vertices[U4] = tempU;
+							float tempV = vertices[V1];
+							vertices[V1] = vertices[V3];
+							vertices[V3] = tempV;
+							tempV = vertices[V2];
+							vertices[V2] = vertices[V4];
+							vertices[V4] = tempV;
+							break;
+						}
+						case Cell.ROTATE_270: {
+							float tempV = vertices[V1];
+							vertices[V1] = vertices[V4];
+							vertices[V4] = vertices[V3];
+							vertices[V3] = vertices[V2];
+							vertices[V2] = tempV;
 
-								float tempU = vertices[U1];
-								vertices[U1] = vertices[U4];
-								vertices[U4] = vertices[U3];
-								vertices[U3] = vertices[U2];
-								vertices[U2] = tempU;
-								break;
-							}
+							float tempU = vertices[U1];
+							vertices[U1] = vertices[U4];
+							vertices[U4] = vertices[U3];
+							vertices[U3] = vertices[U2];
+							vertices[U2] = tempU;
+							break;
+						}
 						}
 					}
 					spriteBatch.draw(region.getTexture(), vertices, 0, 20);
 				}
 				x += layerTileWidth;
 			}
-			y += layerTileHeight;
+			y -= layerTileHeight;
 		}
 	}
 }

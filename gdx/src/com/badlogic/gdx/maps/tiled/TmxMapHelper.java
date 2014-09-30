@@ -27,9 +27,9 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.StreamUtils;
 import com.badlogic.gdx.utils.XmlReader.Element;
 
-/** Package private helper class for common tiled map tasks.
+/** Helper class for common tiled map tasks.
  * @author hneuer */
-class TmxMapHelper {
+public final class TmxMapHelper {
 	static final int FLAG_FLIP_HORIZONTALLY = 0x80000000;
 	static final int FLAG_FLIP_VERTICALLY = 0x40000000;
 	static final int FLAG_FLIP_DIAGONALLY = 0x20000000;
@@ -39,7 +39,7 @@ class TmxMapHelper {
 
 	}
 
-	static int[] getTileIds (Element element, int width, int height) {
+	static public int[] getTileIds (Element element, int width, int height) {
 		Element data = element.getChildByName("data");
 		String encoding = data.getAttribute("encoding", null);
 		if (encoding == null) { // no 'encoding' attribute means that the encoding is XML
@@ -69,7 +69,13 @@ class TmxMapHelper {
 						byte[] temp = new byte[4];
 						for (int y = 0; y < height; y++) {
 							for (int x = 0; x < width; x++) {
-								if (is.read(temp) != temp.length)
+								int read = is.read(temp);
+								while (read < temp.length) {
+									int curr = is.read(temp, read, temp.length - read);
+									if (curr == -1) break;
+									read += curr;
+								}
+								if (read != temp.length)
 									throw new GdxRuntimeException("Error Reading TMX Layer Data: Premature end of tile data");
 								ids[y * width + x] = unsignedByteToInt(temp[0]) | unsignedByteToInt(temp[1]) << 8
 									| unsignedByteToInt(temp[2]) << 16 | unsignedByteToInt(temp[3]) << 24;
@@ -89,7 +95,7 @@ class TmxMapHelper {
 		return ids;
 	}
 
-	static int unsignedByteToInt (byte b) {
+	static public int unsignedByteToInt (byte b) {
 		return (int)b & 0xFF;
 	}
 }

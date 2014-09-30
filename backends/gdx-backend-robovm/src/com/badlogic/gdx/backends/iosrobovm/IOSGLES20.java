@@ -21,14 +21,15 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.GLCommon;
 
-
-public class IOSGLES20 implements GL20, GLCommon
+public class IOSGLES20 implements GL20
 {	
 	public IOSGLES20() {
 		init();
 	}
+	
+	/** last viewport set, needed because GLKView resets the viewport on each call to render... amazing **/
+	public static int x, y, width, height;
 	
 	private static native void init( );	
 	
@@ -318,5 +319,13 @@ public class IOSGLES20 implements GL20, GLCommon
 	
 	public native void glVertexAttribPointer ( int indx, int size, int type, boolean normalized, int stride, int ptr );
 
-	public native void glViewport ( int x, int y, int width, int height );
+	public void glViewport(int x, int y, int width, int height) {
+		IOSGLES20.x = x;
+		IOSGLES20.y = y;
+		IOSGLES20.width = width;
+		IOSGLES20.height = height;
+		glViewportJni(x, y, width, height);
+	}
+	
+	public native void glViewportJni ( int x, int y, int width, int height );
 }

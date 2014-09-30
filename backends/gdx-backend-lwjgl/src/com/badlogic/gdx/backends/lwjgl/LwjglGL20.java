@@ -32,14 +32,13 @@ import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 
-import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 /** An implementation of the {@link GL20} interface based on LWJGL. Note that LWJGL shaders and OpenGL ES shaders will not be 100%
  * compatible. Some glGetXXX methods are not implemented.
  * 
  * @author mzechner */
-final class LwjglGL20 implements com.badlogic.gdx.graphics.GL20 {
+class LwjglGL20 implements com.badlogic.gdx.graphics.GL20 {
 	public void glActiveTexture (int texture) {
 		GL13.glActiveTexture(texture);
 	}
@@ -234,11 +233,11 @@ final class LwjglGL20 implements com.badlogic.gdx.graphics.GL20 {
 	}
 
 	public void glDrawElements (int mode, int count, int type, Buffer indices) {
-		if (indices instanceof ShortBuffer && type == GL10.GL_UNSIGNED_SHORT)
+		if (indices instanceof ShortBuffer && type == com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT)
 			GL11.glDrawElements(mode, (ShortBuffer)indices);
-		else if (indices instanceof ByteBuffer && type == GL10.GL_UNSIGNED_SHORT)
+		else if (indices instanceof ByteBuffer && type == com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT)
 			GL11.glDrawElements(mode, ((ByteBuffer)indices).asShortBuffer()); // FIXME yay...
-		else if (indices instanceof ByteBuffer && type == GL10.GL_UNSIGNED_BYTE)
+		else if (indices instanceof ByteBuffer && type == com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE)
 			GL11.glDrawElements(mode, (ByteBuffer)indices);
 		else
 			throw new GdxRuntimeException("Can't use " + indices.getClass().getName()
@@ -720,6 +719,16 @@ final class LwjglGL20 implements com.badlogic.gdx.graphics.GL20 {
 						+ " with type "
 						+ type
 						+ " with this method. Use ByteBuffer and one of GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT or GL_FLOAT for type. Blame LWJGL");
+		} else if (buffer instanceof FloatBuffer) {
+			if (type == GL_FLOAT)
+				GL20.glVertexAttribPointer(indx, size, normalized, stride, (FloatBuffer)buffer);
+			else
+				throw new GdxRuntimeException(
+					"Can't use "
+						+ buffer.getClass().getName()
+						+ " with type "
+						+ type
+						+ " with this method.");
 		} else
 			throw new GdxRuntimeException("Can't use " + buffer.getClass().getName()
 				+ " with this method. Use ByteBuffer instead. Blame LWJGL");

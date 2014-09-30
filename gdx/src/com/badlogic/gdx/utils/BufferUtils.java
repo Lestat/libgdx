@@ -32,7 +32,7 @@ import com.badlogic.gdx.math.Matrix4;
 /** Class with static helper methods to increase the speed of array/direct buffer and direct buffer/direct buffer transfers
  * 
  * @author mzechner, xoppa */
-public class BufferUtils {
+public final class BufferUtils {
 	static Array<ByteBuffer> unsafeBuffers = new Array<ByteBuffer>();
 	static int allocatedUnsafe = 0;
 
@@ -82,7 +82,7 @@ public class BufferUtils {
 		copyJni(src, srcOffset << 1, dst, positionInBytes(dst), numElements << 1);
 		dst.limit(dst.position() + bytesToElements(dst, numElements << 1));
 	}
-	
+
 	/** Copies the contents of src to dst, starting from src[srcOffset], copying numElements elements. The {@link Buffer} instance's
 	 * {@link Buffer#position()} is used to define the offset into the Buffer itself. The position and limit will stay the same.
 	 * <b>The Buffer must be a direct Buffer with native byte order. No error checking is performed</b>.
@@ -228,8 +228,8 @@ public class BufferUtils {
 		dst.limit(dst.position() + bytesToElements(dst, numBytes));
 	}
 
-	/** Multiply float vector components within the buffer with the specified matrix. The {@link Buffer#position()} is used as
-	 * the offset.
+	/** Multiply float vector components within the buffer with the specified matrix. The {@link Buffer#position()} is used as the
+	 * offset.
 	 * @param data The buffer to transform.
 	 * @param dimensions The number of components of the vector (2 for xy, 3 for xyz or 4 for xyzw)
 	 * @param strideInBytes The offset between the first and the second vector to transform
@@ -238,9 +238,20 @@ public class BufferUtils {
 	public static void transform (Buffer data, int dimensions, int strideInBytes, int count, Matrix4 matrix) {
 		transform(data, dimensions, strideInBytes, count, matrix, 0);
 	}
-	
-	/** Multiply float vector components within the buffer with the specified matrix. The specified offset value
-	 * is added to the {@link Buffer#position()} and used as the offset.
+
+	/** Multiply float vector components within the buffer with the specified matrix. The {@link Buffer#position()} is used as the
+	 * offset.
+	 * @param data The buffer to transform.
+	 * @param dimensions The number of components of the vector (2 for xy, 3 for xyz or 4 for xyzw)
+	 * @param strideInBytes The offset between the first and the second vector to transform
+	 * @param count The number of vectors to transform
+	 * @param matrix The matrix to multiply the vector with */
+	public static void transform (float[] data, int dimensions, int strideInBytes, int count, Matrix4 matrix) {
+		transform(data, dimensions, strideInBytes, count, matrix, 0);
+	}
+
+	/** Multiply float vector components within the buffer with the specified matrix. The specified offset value is added to the
+	 * {@link Buffer#position()} and used as the offset.
 	 * @param data The buffer to transform.
 	 * @param dimensions The number of components of the vector (2 for xy, 3 for xyz or 4 for xyzw)
 	 * @param strideInBytes The offset between the first and the second vector to transform
@@ -250,21 +261,45 @@ public class BufferUtils {
 	public static void transform (Buffer data, int dimensions, int strideInBytes, int count, Matrix4 matrix, int offset) {
 		switch (dimensions) {
 		case 4:
-			transformV4M4Jni (data, strideInBytes, count, matrix.val, positionInBytes(data) + offset);
+			transformV4M4Jni(data, strideInBytes, count, matrix.val, positionInBytes(data) + offset);
 			break;
 		case 3:
-			transformV3M4Jni (data, strideInBytes, count, matrix.val, positionInBytes(data) + offset);
+			transformV3M4Jni(data, strideInBytes, count, matrix.val, positionInBytes(data) + offset);
 			break;
 		case 2:
-			transformV2M4Jni (data, strideInBytes, count, matrix.val, positionInBytes(data) + offset);
+			transformV2M4Jni(data, strideInBytes, count, matrix.val, positionInBytes(data) + offset);
 			break;
 		default:
 			throw new IllegalArgumentException();
 		}
 	}
-	
-	/** Multiply float vector components within the buffer with the specified matrix. The {@link Buffer#position()} is used as
-	 * the offset.
+
+	/** Multiply float vector components within the buffer with the specified matrix. The specified offset value is added to the
+	 * {@link Buffer#position()} and used as the offset.
+	 * @param data The buffer to transform.
+	 * @param dimensions The number of components of the vector (2 for xy, 3 for xyz or 4 for xyzw)
+	 * @param strideInBytes The offset between the first and the second vector to transform
+	 * @param count The number of vectors to transform
+	 * @param matrix The matrix to multiply the vector with
+	 * @param offset The offset within the buffer (in bytes relative to the current position) to the vector */
+	public static void transform (float[] data, int dimensions, int strideInBytes, int count, Matrix4 matrix, int offset) {
+		switch (dimensions) {
+		case 4:
+			transformV4M4Jni(data, strideInBytes, count, matrix.val, offset);
+			break;
+		case 3:
+			transformV3M4Jni(data, strideInBytes, count, matrix.val, offset);
+			break;
+		case 2:
+			transformV2M4Jni(data, strideInBytes, count, matrix.val, offset);
+			break;
+		default:
+			throw new IllegalArgumentException();
+		}
+	}
+
+	/** Multiply float vector components within the buffer with the specified matrix. The {@link Buffer#position()} is used as the
+	 * offset.
 	 * @param data The buffer to transform.
 	 * @param dimensions The number of components (x, y, z) of the vector (2 for xy or 3 for xyz)
 	 * @param strideInBytes The offset between the first and the second vector to transform
@@ -273,9 +308,20 @@ public class BufferUtils {
 	public static void transform (Buffer data, int dimensions, int strideInBytes, int count, Matrix3 matrix) {
 		transform(data, dimensions, strideInBytes, count, matrix, 0);
 	}
-	
-	/** Multiply float vector components within the buffer with the specified matrix. The specified offset value
-	 * is added to the {@link Buffer#position()} and used as the offset.
+
+	/** Multiply float vector components within the buffer with the specified matrix. The {@link Buffer#position()} is used as the
+	 * offset.
+	 * @param data The buffer to transform.
+	 * @param dimensions The number of components (x, y, z) of the vector (2 for xy or 3 for xyz)
+	 * @param strideInBytes The offset between the first and the second vector to transform
+	 * @param count The number of vectors to transform
+	 * @param matrix The matrix to multiply the vector with */
+	public static void transform (float[] data, int dimensions, int strideInBytes, int count, Matrix3 matrix) {
+		transform(data, dimensions, strideInBytes, count, matrix, 0);
+	}
+
+	/** Multiply float vector components within the buffer with the specified matrix. The specified offset value is added to the
+	 * {@link Buffer#position()} and used as the offset.
 	 * @param data The buffer to transform.
 	 * @param dimensions The number of components (x, y, z) of the vector (2 for xy or 3 for xyz)
 	 * @param strideInBytes The offset between the first and the second vector to transform
@@ -285,45 +331,66 @@ public class BufferUtils {
 	public static void transform (Buffer data, int dimensions, int strideInBytes, int count, Matrix3 matrix, int offset) {
 		switch (dimensions) {
 		case 3:
-			transformV3M3Jni (data, strideInBytes, count, matrix.val, positionInBytes(data) + offset * 3);
+			transformV3M3Jni(data, strideInBytes, count, matrix.val, positionInBytes(data) + offset);
 			break;
 		case 2:
-			transformV2M3Jni (data, strideInBytes, count, matrix.val, positionInBytes(data) + offset * 3);
+			transformV2M3Jni(data, strideInBytes, count, matrix.val, positionInBytes(data) + offset);
 			break;
 		default:
 			throw new IllegalArgumentException();
 		}
 	}
-	
-	public static long findFloats(Buffer vertex, int strideInBytes, Buffer vertices, int numVertices) {
+
+	/** Multiply float vector components within the buffer with the specified matrix. The specified offset value is added to the
+	 * {@link Buffer#position()} and used as the offset.
+	 * @param data The buffer to transform.
+	 * @param dimensions The number of components (x, y, z) of the vector (2 for xy or 3 for xyz)
+	 * @param strideInBytes The offset between the first and the second vector to transform
+	 * @param count The number of vectors to transform
+	 * @param matrix The matrix to multiply the vector with,
+	 * @param offset The offset within the buffer (in bytes relative to the current position) to the vector */
+	public static void transform (float[] data, int dimensions, int strideInBytes, int count, Matrix3 matrix, int offset) {
+		switch (dimensions) {
+		case 3:
+			transformV3M3Jni(data, strideInBytes, count, matrix.val, offset);
+			break;
+		case 2:
+			transformV2M3Jni(data, strideInBytes, count, matrix.val, offset);
+			break;
+		default:
+			throw new IllegalArgumentException();
+		}
+	}
+
+	public static long findFloats (Buffer vertex, int strideInBytes, Buffer vertices, int numVertices) {
 		return find(vertex, positionInBytes(vertex), strideInBytes, vertices, positionInBytes(vertices), numVertices);
 	}
 
-	public static long findFloats(float[] vertex, int strideInBytes, Buffer vertices, int numVertices) {
+	public static long findFloats (float[] vertex, int strideInBytes, Buffer vertices, int numVertices) {
 		return find(vertex, 0, strideInBytes, vertices, positionInBytes(vertices), numVertices);
 	}
-	
-	public static long findFloats(Buffer vertex, int strideInBytes, float[] vertices, int numVertices) {
+
+	public static long findFloats (Buffer vertex, int strideInBytes, float[] vertices, int numVertices) {
 		return find(vertex, positionInBytes(vertex), strideInBytes, vertices, 0, numVertices);
 	}
-	
-	public static long findFloats(float[] vertex, int strideInBytes, float[] vertices, int numVertices) {
+
+	public static long findFloats (float[] vertex, int strideInBytes, float[] vertices, int numVertices) {
 		return find(vertex, 0, strideInBytes, vertices, 0, numVertices);
 	}
-	
-	public static long findFloats(Buffer vertex, int strideInBytes, Buffer vertices, int numVertices, float epsilon) {
+
+	public static long findFloats (Buffer vertex, int strideInBytes, Buffer vertices, int numVertices, float epsilon) {
 		return find(vertex, positionInBytes(vertex), strideInBytes, vertices, positionInBytes(vertices), numVertices, epsilon);
 	}
 
-	public static long findFloats(float[] vertex, int strideInBytes, Buffer vertices, int numVertices, float epsilon) {
+	public static long findFloats (float[] vertex, int strideInBytes, Buffer vertices, int numVertices, float epsilon) {
 		return find(vertex, 0, strideInBytes, vertices, positionInBytes(vertices), numVertices, epsilon);
 	}
-	
-	public static long findFloats(Buffer vertex, int strideInBytes, float[] vertices, int numVertices, float epsilon) {
+
+	public static long findFloats (Buffer vertex, int strideInBytes, float[] vertices, int numVertices, float epsilon) {
 		return find(vertex, positionInBytes(vertex), strideInBytes, vertices, 0, numVertices, epsilon);
 	}
-	
-	public static long findFloats(float[] vertex, int strideInBytes, float[] vertices, int numVertices, float epsilon) {
+
+	public static long findFloats (float[] vertex, int strideInBytes, float[] vertices, int numVertices, float epsilon) {
 		return find(vertex, 0, strideInBytes, vertices, 0, numVertices, epsilon);
 	}
 
@@ -641,11 +708,23 @@ public class BufferUtils {
 		transform<4, 4>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);  
 	*/
 	
+	private native static void transformV4M4Jni (float[] data, int strideInBytes, int count, float[] matrix, int offsetInBytes); /*
+		transform<4, 4>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);  
+	*/
+	
 	private native static void transformV3M4Jni (Buffer data, int strideInBytes, int count, float[] matrix, int offsetInBytes); /*
 		transform<3, 4>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);
 	*/
 	
+	private native static void transformV3M4Jni (float[] data, int strideInBytes, int count, float[] matrix, int offsetInBytes); /*
+		transform<3, 4>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);
+	*/
+	
 	private native static void transformV2M4Jni (Buffer data, int strideInBytes, int count, float[] matrix, int offsetInBytes); /*
+		transform<2, 4>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);
+	*/
+	
+	private native static void transformV2M4Jni (float[] data, int strideInBytes, int count, float[] matrix, int offsetInBytes); /*
 		transform<2, 4>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);
 	*/
 
@@ -653,7 +732,15 @@ public class BufferUtils {
 		transform<3, 3>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);
 	*/
 	
+	private native static void transformV3M3Jni (float[] data, int strideInBytes, int count, float[] matrix, int offsetInBytes); /*
+		transform<3, 3>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);
+	*/
+	
 	private native static void transformV2M3Jni (Buffer data, int strideInBytes, int count, float[] matrix, int offsetInBytes); /*
+		transform<2, 3>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);
+	*/
+	
+	private native static void transformV2M3Jni (float[] data, int strideInBytes, int count, float[] matrix, int offsetInBytes); /*
 		transform<2, 3>((float*)data, strideInBytes / 4, count, (float*)matrix, offsetInBytes / 4);
 	*/
 	

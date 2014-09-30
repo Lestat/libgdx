@@ -23,7 +23,6 @@
 package com.badlogic.gdx.graphics.g2d;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
@@ -33,7 +32,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -68,6 +66,7 @@ public class BitmapFont implements Disposable {
 	private boolean flipped;
 	private boolean integer;
 	private boolean ownsTexture;
+	boolean markupEnabled;
 
 	/** Creates a BitmapFont using the default 15pt Arial font included in the libgdx JAR file. This is convenient to easily display
 	 * text without bothering with generating a bitmap font. */
@@ -130,7 +129,7 @@ public class BitmapFont implements Disposable {
 	/** Creates a BitmapFont from a BMFont file, using the specified image for glyphs. Any image specified in the BMFont file is
 	 * ignored.
 	 * @param flip If true, the glyphs will be flipped for use with a perspective where 0,0 is the upper left corner.
-	 * @param integer If true, rendering positions will be at integer values to avoid filtering artifacts.s */
+	 * @param integer If true, rendering positions will be at integer values to avoid filtering artifacts. */
 	public BitmapFont (FileHandle fontFile, FileHandle imageFile, boolean flip, boolean integer) {
 		this(new BitmapFontData(fontFile, flip), new TextureRegion(new Texture(imageFile, false)), integer);
 		ownsTexture = true;
@@ -144,9 +143,7 @@ public class BitmapFont implements Disposable {
 	 * pages, either let the Font read the images themselves (by specifying null as the TextureRegion), or by specifying each page
 	 * manually with the TextureRegion[] constructor.
 	 * 
-	 * @param data
-	 * @param region
-	 * @param integer */
+	 * @param integer If true, rendering positions will be at integer values to avoid filtering artifacts. */
 	public BitmapFont (BitmapFontData data, TextureRegion region, boolean integer) {
 		this(data, region != null ? new TextureRegion[] {region} : null, integer);
 	}
@@ -155,9 +152,7 @@ public class BitmapFont implements Disposable {
 	 * is null or empty, the image path(s) will be read from the BitmapFontData. The dispose() method will not dispose the texture
 	 * of the region(s) if the regions array is != null and not empty.
 	 * 
-	 * @param data
-	 * @param regions
-	 * @param integer */
+	 * @param integer If true, rendering positions will be at integer values to avoid filtering artifacts. */
 	public BitmapFont (BitmapFontData data, TextureRegion[] regions, boolean integer) {
 		if (regions == null || regions.length == 0) {
 			// load each path
@@ -343,7 +338,17 @@ public class BitmapFont implements Disposable {
 		int width = 0;
 		Glyph lastGlyph = null;
 		while (start < end) {
-			lastGlyph = data.getGlyph(str.charAt(start++));
+			char ch = str.charAt(start++);
+			if (ch == '[' && markupEnabled) {
+				if (!(start < end && str.charAt(start) == '[')) { // non escaped '['
+					while (start < end && str.charAt(start) != ']')
+						start++;
+					start++;
+					continue;
+				}
+				start++;
+			}
+			lastGlyph = data.getGlyph(ch);
 			if (lastGlyph != null) {
 				width = lastGlyph.xadvance;
 				break;
@@ -351,6 +356,15 @@ public class BitmapFont implements Disposable {
 		}
 		while (start < end) {
 			char ch = str.charAt(start++);
+			if (ch == '[' && markupEnabled) {
+				if (!(start < end && str.charAt(start) == '[')) { // non escaped '['
+					while (start < end && str.charAt(start) != ']')
+						start++;
+					start++;
+					continue;
+				}
+				start++;
+			}
 			Glyph g = data.getGlyph(ch);
 			if (g != null) {
 				width += lastGlyph.getKerning(ch);
@@ -396,7 +410,8 @@ public class BitmapFont implements Disposable {
 
 	/** Returns the bounds of the specified text, which may contain newlines and is wrapped within the specified width. The height
 	 * is the distance from the top of most capital letters in the font (the {@link #getCapHeight() cap height}) to the baseline of
-	 * the last line of text. */
+	 * the last line of text.
+	 * @param wrapWidth Width to wrap the bounds within. */
 	public TextBounds getWrappedBounds (CharSequence str, float wrapWidth, TextBounds textBounds) {
 		if (wrapWidth <= 0) wrapWidth = Integer.MAX_VALUE;
 		int start = 0;
@@ -499,6 +514,14 @@ public class BitmapFont implements Disposable {
 
 		for (; index < end; index++) {
 			char ch = str.charAt(index);
+			if (ch == '[' && markupEnabled) {
+				index++;
+				if (!(index < end && str.charAt(index) == '[')) { // non escaped '['
+					while (index < end && str.charAt(index) != ']')
+						index++;
+					continue;
+				}
+			}
 			Glyph g = data.getGlyph(ch);
 			if (g != null) {
 				if (lastGlyph != null) width += lastGlyph.getKerning(ch);
@@ -528,7 +551,16 @@ public class BitmapFont implements Disposable {
 		return cache.getColor();
 	}
 
+	/** Scales the font by the specified amounts on both axes <br>
+	 * <br>
+	 * Note that smoother scaling can be achieved if the texture backing the BitmapFont is using {@link TextureFilter#Linear}. The
+	 * default is Nearest, so use a BitmapFont constructor that takes a {@link TextureRegion}.
+	 * 
+	 * @throws IllegalArgumentException When scaleXY is zero */
 	public void setScale (float scaleX, float scaleY) {
+		if (scaleX == 0 || scaleY == 0) {
+			throw new IllegalArgumentException("Scale must not be zero");
+		}
 		BitmapFontData data = this.data;
 		float x = scaleX / data.scaleX;
 		float y = scaleY / data.scaleY;
@@ -543,15 +575,16 @@ public class BitmapFont implements Disposable {
 		data.scaleY = scaleY;
 	}
 
-	/** Scales the font by the specified amount in both directions.<br>
-	 * <br>
-	 * Note that smoother scaling can be achieved if the texture backing the BitmapFont is using {@link TextureFilter#Linear}. The
-	 * default is Nearest, so use a BitmapFont constructor that takes a {@link TextureRegion}. */
+	/** Scales the font by the specified amount in both directions.
+	 * @see #setScale(float, float)
+	 * @throws IllegalArgumentException When scaleXY is zero */
 	public void setScale (float scaleXY) {
 		setScale(scaleXY, scaleXY);
 	}
 
-	/** Sets the font's scale relative to the current scale. */
+	/** Sets the font's scale relative to the current scale.
+	 * @see #setScale(float, float)
+	 * @throws IllegalArgumentException When resulting scale is zero */
 	public void scale (float amount) {
 		setScale(data.scaleX + amount, data.scaleY + amount);
 	}
@@ -621,6 +654,16 @@ public class BitmapFont implements Disposable {
 		return flipped;
 	}
 
+	/** Returns true if color markup is enabled for this BitmapFont */
+	public boolean isMarkupEnabled () {
+		return markupEnabled;
+	}
+
+	/** Sets color markup on/off for this BitmapFont */
+	public void setMarkupEnabled (boolean markupEnabled) {
+		this.markupEnabled = markupEnabled;
+	}
+
 	/** Disposes the texture used by this BitmapFont's region IF this BitmapFont created the texture. */
 	public void dispose () {
 		if (ownsTexture) {
@@ -647,7 +690,7 @@ public class BitmapFont implements Disposable {
 		}
 	}
 
-	/** @return true if the character is contained in this font. */
+	/** Checks whether this BitmapFont data contains a given character. */
 	public boolean containsCharacter (char character) {
 		return data.getGlyph(character) != null;
 	}
@@ -658,7 +701,7 @@ public class BitmapFont implements Disposable {
 		cache.setUseIntegerPositions(integer);
 	}
 
-	/** @return whether this font uses integer positions for drawing. */
+	/** Checks whether this font uses integer positions for drawing. */
 	public boolean usesIntegerPositions () {
 		return integer;
 	}
@@ -670,6 +713,7 @@ public class BitmapFont implements Disposable {
 		return cache;
 	}
 
+	/** Gets the underlying {@link BitmapFontData} for this BitmapFont. */
 	public BitmapFontData getData () {
 		return data;
 	}
@@ -686,6 +730,11 @@ public class BitmapFont implements Disposable {
 		this.ownsTexture = ownsTexture;
 	}
 
+	public String toString () {
+		return data.fontFile.nameWithoutExtension();
+	}
+
+	/** Represents a single character in a font page. */
 	public static class Glyph {
 		public int id;
 		public int srcX;
@@ -734,6 +783,7 @@ public class BitmapFont implements Disposable {
 		}
 	}
 
+	/** Arbitrarily definable text boundary */
 	static public class TextBounds {
 		public float width;
 		public float height;
@@ -751,13 +801,14 @@ public class BitmapFont implements Disposable {
 		}
 	}
 
+	/** Defines possible horizontal alignments. */
 	static public enum HAlignment {
 		LEFT, CENTER, RIGHT
 	}
 
+	/** Backing data for a {@link BitmapFont}. */
 	public static class BitmapFontData {
 		/** The first discovered image path; included for backwards-compatibility This is the same as imagePaths[0].
-		 * 
 		 * @deprecated use imagePaths[0] instead */
 		@Deprecated public String imagePath;
 
@@ -911,7 +962,10 @@ public class BitmapFont implements Disposable {
 					Glyph glyph = getGlyph((char)first);
 					tokens.nextToken();
 					int amount = Integer.parseInt(tokens.nextToken());
-					glyph.setKerning(second, amount);
+					if (glyph != null) { // it appears BMFont outputs kerning for glyph pairs not contained in the font, hence the null
+// check
+						glyph.setKerning(second, amount);
+					}
 				}
 
 				Glyph spaceGlyph = getGlyph(' ');
@@ -979,6 +1033,7 @@ public class BitmapFont implements Disposable {
 			throw new GdxRuntimeException("No glyphs found!");
 		}
 
+		/** Returns the glyph for the specified character, or null if no such glyph exists. */
 		public Glyph getGlyph (char ch) {
 			Glyph[] page = glyphs[ch / PAGE_SIZE];
 			if (page != null) return page[ch & PAGE_SIZE - 1];

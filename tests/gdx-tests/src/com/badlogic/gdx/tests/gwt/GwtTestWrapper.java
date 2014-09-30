@@ -40,6 +40,7 @@ import com.badlogic.gdx.tests.ActionSequenceTest;
 import com.badlogic.gdx.tests.ActionTest;
 import com.badlogic.gdx.tests.AlphaTest;
 import com.badlogic.gdx.tests.AnimationTest;
+import com.badlogic.gdx.tests.AnnotationTest;
 import com.badlogic.gdx.tests.AssetManagerTest;
 import com.badlogic.gdx.tests.AtlasIssueTest;
 import com.badlogic.gdx.tests.BitmapFontAlignmentTest;
@@ -59,6 +60,7 @@ import com.badlogic.gdx.tests.FrameBufferTest;
 import com.badlogic.gdx.tests.GestureDetectorTest;
 import com.badlogic.gdx.tests.GroupCullingTest;
 import com.badlogic.gdx.tests.GroupFadeTest;
+import com.badlogic.gdx.tests.I18NSimpleMessageTest;
 import com.badlogic.gdx.tests.ImageScaleTest;
 import com.badlogic.gdx.tests.ImageTest;
 import com.badlogic.gdx.tests.IndexBufferObjectShaderTest;
@@ -91,9 +93,9 @@ import com.badlogic.gdx.tests.SpriteCacheTest;
 import com.badlogic.gdx.tests.StageTest;
 import com.badlogic.gdx.tests.TableTest;
 import com.badlogic.gdx.tests.TextButtonTest;
-import com.badlogic.gdx.tests.TextButtonTestGL2;
 import com.badlogic.gdx.tests.TextureAtlasTest;
 import com.badlogic.gdx.tests.TiledMapAtlasAssetManagerTest;
+import com.badlogic.gdx.tests.TimeUtilsTest;
 import com.badlogic.gdx.tests.UITest;
 import com.badlogic.gdx.tests.VertexBufferObjectShaderTest;
 import com.badlogic.gdx.tests.YDownTest;
@@ -114,7 +116,7 @@ public class GwtTestWrapper extends GdxTest {
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		Gdx.app.log("GdxTestGwt", "Setting up for " + tests.length + " tests.");
 
-		ui = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+		ui = new Stage();
 		skin = new Skin(Gdx.files.internal("data/uiskin.json"));
 		font = new BitmapFont(Gdx.files.internal("data/arial-15.fnt"), false);
 		container = new Table();
@@ -195,7 +197,7 @@ public class GwtTestWrapper extends GdxTest {
 	}
 
 	public void resize (int width, int height) {
-		ui.setViewport(width, height, false);
+		ui.getViewport().update(width, height, true);
 		container.setSize(width, height);
 		if (test != null) {
 			test.resize(width, height);
@@ -293,6 +295,11 @@ public class GwtTestWrapper extends GdxTest {
 		public boolean isKeyPressed (int key) {
 			return input.isKeyPressed(key);
 		}
+		
+		@Override
+		public boolean isKeyJustPressed (int key) {
+			return input.isKeyJustPressed(key);
+		}
 
 		@Override
 		public void getTextInput (TextInputListener listener, String title, String text) {
@@ -352,6 +359,11 @@ public class GwtTestWrapper extends GdxTest {
 		@Override
 		public void setCatchBackKey (boolean catchBack) {
 			input.setCatchBackKey(catchBack);
+		}
+
+		@Override
+		public boolean isCatchBackKey() {
+			return input.isCatchBackKey();
 		}
 
 		@Override
@@ -424,11 +436,11 @@ public class GwtTestWrapper extends GdxTest {
 		}
 	}, new Instancer() {
 		public GdxTest instance () {
-			return new AlphaTest();
+			return new AnimationTest();
 		}
 	}, new Instancer() {
 		public GdxTest instance () {
-			return new AnimationTest();
+			return new AnnotationTest();
 		}
 	}, new Instancer() {
 		public GdxTest instance () {
@@ -511,6 +523,10 @@ public class GwtTestWrapper extends GdxTest {
 		}, new Instancer() {
 			public GdxTest instance () {
 				return new GroupFadeTest();
+			}
+		}, new Instancer() {
+			public GdxTest instance () {
+				return new I18NSimpleMessageTest();
 			}
 		}, new Instancer() {
 			public GdxTest instance () {
@@ -648,7 +664,7 @@ public class GwtTestWrapper extends GdxTest {
 			}
 		}, new Instancer() {
 			public GdxTest instance () {
-				return new TextButtonTestGL2();
+				return new TextButtonTest();
 			}
 		}, new Instancer() {
 			public GdxTest instance () {
@@ -678,10 +694,9 @@ public class GwtTestWrapper extends GdxTest {
 			public GdxTest instance () {
 				return new TiledMapAtlasAssetManagerTest();
 			}
+		}, new Instancer() {
+			public GdxTest instance () {
+				return new TimeUtilsTest();
+			}
 		}};
-
-	@Override
-	public boolean needsGL20 () {
-		return true;
-	}
 }

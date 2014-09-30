@@ -28,15 +28,6 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.tiles.AnimatedTiledMapTile;
 
 public class HexagonalTiledMapRenderer extends BatchTiledMapRenderer {
-	private boolean yDown = false;
-
-	public boolean isYdown() {
-		return yDown;
-	}
-
-	public void setYDown(boolean yDown) {
-		this.yDown = yDown;
-	}
 
 	public HexagonalTiledMapRenderer (TiledMap map) {
 		super(map);
@@ -54,10 +45,8 @@ public class HexagonalTiledMapRenderer extends BatchTiledMapRenderer {
 		super(map, unitScale, batch);
 	}
 
-	private float[] vertices = new float[20];
-
 	@Override
-	public void renderTileLayer(TiledMapTileLayer layer) {
+	public void renderTileLayer (TiledMapTileLayer layer) {
 		final Color batchColor = spriteBatch.getColor();
 		final float color = Color.toFloatBits(batchColor.r, batchColor.g, batchColor.b, batchColor.a * layer.getOpacity());
 
@@ -73,21 +62,21 @@ public class HexagonalTiledMapRenderer extends BatchTiledMapRenderer {
 		final float layerTileHeight50 = layerTileHeight * 0.50f;
 		final float layerTileHeight150 = layerTileHeight * 1.50f;
 
-		final int col1 = Math.max(0, (int) (((viewBounds.x - layerTileWidth25) / layerTileWidth75)));
-		final int col2 = Math.min(layerWidth, (int) ((viewBounds.x + viewBounds.width + layerTileWidth75) / layerTileWidth75));
+		final int col1 = Math.max(0, (int)(((viewBounds.x - layerTileWidth25) / layerTileWidth75)));
+		final int col2 = Math.min(layerWidth, (int)((viewBounds.x + viewBounds.width + layerTileWidth75) / layerTileWidth75));
 
-		final int row1 = Math.max(0, (int) ((viewBounds.y / layerTileHeight150)));
-		final int row2 = Math.min(layerHeight, (int) ((viewBounds.y + viewBounds.height + layerTileHeight150) / layerTileHeight));
+		final int row1 = Math.max(0, (int)((viewBounds.y / layerTileHeight150)));
+		final int row2 = Math.min(layerHeight, (int)((viewBounds.y + viewBounds.height + layerTileHeight150) / layerTileHeight));
 
 		final float[] vertices = this.vertices;
 
 		for (int row = row1; row < row2; row++) {
 			for (int col = col1; col < col2; col++) {
 				float x = layerTileWidth75 * col;
-				float y = (col % 2 == (yDown ? 0 : 1) ? 0 : layerTileHeight50) + (layerTileHeight * row);
+				float y = (col % 2 == 1 ? 0 : layerTileHeight50) + (layerTileHeight * row);
 
 				final TiledMapTileLayer.Cell cell = layer.getCell(col, row);
-				if(cell == null) {
+				if (cell == null) {
 					x += layerTileWidth;
 					continue;
 				}
@@ -101,8 +90,8 @@ public class HexagonalTiledMapRenderer extends BatchTiledMapRenderer {
 
 					TextureRegion region = tile.getTextureRegion();
 
-					float x1 = x;
-					float y1 = y;
+					float x1 = x + tile.getOffsetX() * unitScale;
+					float y1 = y + tile.getOffsetY() * unitScale;
 					float x2 = x1 + region.getRegionWidth() * unitScale;
 					float y2 = y1 + region.getRegionHeight() * unitScale;
 
@@ -170,11 +159,11 @@ public class HexagonalTiledMapRenderer extends BatchTiledMapRenderer {
 				}
 			}
 		}
-		
+
 	}
 
 	@Override
-	public void renderObject(MapObject object) {
+	public void renderObject (MapObject object) {
 
 	}
 }
