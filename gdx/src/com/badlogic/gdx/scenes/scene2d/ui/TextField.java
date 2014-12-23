@@ -68,6 +68,9 @@ public class TextField extends Widget implements Disableable {
 	static private final Vector2 tmp2 = new Vector2();
 	static private final Vector2 tmp3 = new Vector2();
 
+	static public float keyRepeatInitialTime = 0.4f;
+	static public float keyRepeatTime = 0.1f;
+
 	protected String text;
 	protected int cursor, selectionStart;
 	protected boolean hasSelection;
@@ -99,9 +102,7 @@ public class TextField extends Widget implements Disableable {
 	long lastBlink;
 
 	KeyRepeatTask keyRepeatTask = new KeyRepeatTask();
-	float keyRepeatInitialTime = 0.4f;
-	float keyRepeatTime = 0.1f;
-
+	
 	public TextField (String text, Skin skin) {
 		this(text, skin.get(TextFieldStyle.class));
 	}
@@ -364,6 +365,10 @@ public class TextField extends Widget implements Disableable {
 	}
 
 	private void blink () {
+		if (!Gdx.graphics.isContinuousRendering()) {
+			cursorOn = true;
+			return;
+		}
 		long time = TimeUtils.nanoTime();
 		if ((time - lastBlink) / 1000000000.0f > blinkTime) {
 			cursorOn = !cursorOn;
@@ -756,7 +761,7 @@ public class TextField extends Widget implements Disableable {
 			if (ctrl) {
 				if (keycode == Keys.V) {
 					paste();
-					return true;
+					repeat = true;
 				}
 				if (keycode == Keys.C || keycode == Keys.INSERT) {
 					copy();
@@ -853,6 +858,7 @@ public class TextField extends Widget implements Disableable {
 
 		public boolean keyTyped (InputEvent event, char character) {
 			if (disabled) return false;
+			if (character == 0) return false;
 
 			Stage stage = getStage();
 			if (stage == null || stage.getKeyboardFocus() != TextField.this) return false;
