@@ -16,7 +16,7 @@
 
 package com.badlogic.gdx.scenes.scene2d.actions;
 
-import com.badlogic.gdx.scenes.scene2d.utils.Align;
+import com.badlogic.gdx.utils.Align;
 
 /** Moves an actor from its current position to a specific position.
  * @author Nathan Sweet */
@@ -26,8 +26,8 @@ public class MoveToAction extends TemporalAction {
 	private int alignment = Align.bottomLeft;
 
 	protected void begin () {
-		startX = target.getX();
-		startY = target.getY();
+		startX = target.getX(alignment);
+		startY = target.getY(alignment);
 	}
 
 	protected void update (float percent) {

@@ -207,6 +207,7 @@ public class LwjglCanvas implements Application {
 				}
 				try {
 					Display.processMessages();
+					if (cursor != null) canvas.setCursor(cursor);
 
 					boolean shouldRender = false;
 
@@ -238,8 +239,6 @@ public class LwjglCanvas implements Application {
 						Display.update(false);
 					}
 
-					canvas.setCursor(cursor);
-
 					Display.sync(getFrameRate());
 				} catch (Throwable ex) {
 					exception(ex);
@@ -256,8 +255,9 @@ public class LwjglCanvas implements Application {
 			runnables.clear();
 		}
 		if (executedRunnables.size == 0) return false;
-		for (int i = executedRunnables.size - 1; i >= 0; i--)
-			executedRunnables.removeIndex(i).run();
+		do
+			executedRunnables.pop().run();
+		while (executedRunnables.size > 0);
 		return true;
 	}
 

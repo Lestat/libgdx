@@ -271,9 +271,12 @@ public class Stage extends InputAdapter implements Disposable {
 		event.setButton(button);
 
 		Actor target = hit(tempCoords.x, tempCoords.y, true);
-		if (target == null) target = root;
+		if (target == null) {
+			if (root.getTouchable() == Touchable.enabled) root.fire(event);
+		} else {
+			target.fire(event);
+		}
 
-		target.fire(event);
 		boolean handled = event.isHandled();
 		Pools.free(event);
 		return handled;
@@ -533,8 +536,7 @@ public class Stage extends InputAdapter implements Disposable {
 	}
 
 	/** Adds an actor to the root of the stage.
-	 * @see Group#addActor(Actor)
-	 * @see Actor#remove() */
+	 * @see Group#addActor(Actor) */
 	public void addActor (Actor actor) {
 		root.addActor(actor);
 	}
@@ -633,7 +635,7 @@ public class Stage extends InputAdapter implements Disposable {
 		FocusEvent event = Pools.obtain(FocusEvent.class);
 		event.setStage(this);
 		event.setType(FocusEvent.Type.scroll);
-		Actor oldScrollFocus = keyboardFocus;
+		Actor oldScrollFocus = scrollFocus;
 		if (oldScrollFocus != null) {
 			event.setFocused(false);
 			event.setRelatedActor(actor);

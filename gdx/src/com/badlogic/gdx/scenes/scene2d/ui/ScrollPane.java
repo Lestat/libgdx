@@ -426,8 +426,10 @@ public class ScrollPane extends WidgetGroup {
 
 		if (fade) {
 			// Make sure widget is drawn under fading scrollbars.
-			if (scrollX) areaHeight -= scrollbarHeight;
-			if (scrollY) areaWidth -= scrollbarWidth;
+			if (scrollX && scrollY) {
+				areaHeight -= scrollbarHeight;
+				areaWidth -= scrollbarWidth;
+			}
 		} else {
 			if (scrollbarsOnTop) {
 				// Make sure widget is drawn under non-fading scrollbars.
@@ -449,8 +451,10 @@ public class ScrollPane extends WidgetGroup {
 		maxY = widgetHeight - areaHeight;
 		if (fade) {
 			// Make sure widget is drawn under fading scrollbars.
-			if (scrollX) maxY -= scrollbarHeight;
-			if (scrollY) maxX -= scrollbarWidth;
+			if (scrollX && scrollY) {
+				maxY -= scrollbarHeight;
+				maxX -= scrollbarWidth;
+			}
 		}
 		scrollX(MathUtils.clamp(amountX, 0, maxX));
 		scrollY(MathUtils.clamp(amountY, 0, maxY));
@@ -538,15 +542,24 @@ public class ScrollPane extends WidgetGroup {
 		else
 			y -= (int)(maxY - visualAmountY);
 
-		if (!fadeScrollBars && scrollbarsOnTop && scrollX) {
-			float scrollbarHeight = 0;
-			if (style.hScrollKnob != null) scrollbarHeight = style.hScrollKnob.getMinHeight();
-			if (style.hScroll != null) scrollbarHeight = Math.max(scrollbarHeight, style.hScroll.getMinHeight());
-			y += scrollbarHeight;
-		}
-
 		float x = widgetAreaBounds.x;
 		if (scrollX) x -= (int)visualAmountX;
+
+		if (!fadeScrollBars && scrollbarsOnTop) {
+			if (scrollX && hScrollOnBottom) {
+				float scrollbarHeight = 0;
+				if (style.hScrollKnob != null) scrollbarHeight = style.hScrollKnob.getMinHeight();
+				if (style.hScroll != null) scrollbarHeight = Math.max(scrollbarHeight, style.hScroll.getMinHeight());
+				y += scrollbarHeight;
+			}
+			if (scrollY && !vScrollOnRight) {
+				float scrollbarWidth = 0;
+				if (style.hScrollKnob != null) scrollbarWidth = style.hScrollKnob.getMinWidth();
+				if (style.hScroll != null) scrollbarWidth = Math.max(scrollbarWidth, style.hScroll.getMinWidth());
+				x += scrollbarWidth;
+			}
+		}
+
 		widget.setPosition(x, y);
 
 		if (widget instanceof Cullable) {
@@ -838,11 +851,19 @@ public class ScrollPane extends WidgetGroup {
 	}
 
 	public float getScrollBarHeight () {
-		return style.hScrollKnob == null || !scrollX ? 0 : style.hScrollKnob.getMinHeight();
+		if (!scrollX) return 0;
+		float height = 0;
+		if (style.hScrollKnob != null) height = style.hScrollKnob.getMinHeight();
+		if (style.hScroll != null) height = Math.max(height, style.hScroll.getMinHeight());
+		return height;
 	}
 
 	public float getScrollBarWidth () {
-		return style.vScrollKnob == null || !scrollY ? 0 : style.vScrollKnob.getMinWidth();
+		if (!scrollY) return 0;
+		float width = 0;
+		if (style.vScrollKnob != null) width = style.vScrollKnob.getMinWidth();
+		if (style.vScroll != null) width = Math.max(width, style.vScroll.getMinWidth());
+		return width;
 	}
 
 	/** Returns the width of the scrolled viewport. */
@@ -1008,13 +1029,20 @@ public class ScrollPane extends WidgetGroup {
 	}
 
 	public void drawDebug (ShapeRenderer shapes) {
-		drawDebugBounds(shapes);
+		shapes.flush();
 		applyTransform(shapes, computeTransform());
 		if (ScissorStack.pushScissors(scissorBounds)) {
 			drawDebugChildren(shapes);
 			ScissorStack.popScissors();
 		}
 		resetTransform(shapes);
+	}
+
+	public String toString () {
+		if (widget == null)
+			return super.toString();
+		else
+			return super.toString() + ": " + widget.toString();
 	}
 
 	/** The style for a scroll pane, see {@link ScrollPane}.

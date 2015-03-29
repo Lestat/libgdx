@@ -78,7 +78,7 @@ public class Attributes implements Iterable<Attribute>, Comparator<Attribute> {
 	}
 
 	private final void disable (final long mask) {
-		this.mask &= -1L ^ mask;
+		this.mask &= ~mask;
 	}
 
 	/** Add a attribute to this material. If the material already contains an attribute of the same type it is overwritten. */
@@ -132,7 +132,7 @@ public class Attributes implements Iterable<Attribute>, Comparator<Attribute> {
 	/** Removes the attribute from the material, i.e.: material.remove(BlendingAttribute.ID); Can also be used to remove multiple
 	 * attributes also, i.e. remove(AttributeA.ID | AttributeB.ID); */
 	public final void remove (final long mask) {
-		for (int i = 0; i < attributes.size; i++) {
+		for (int i = attributes.size - 1; i >= 0; i--) {
 			final long type = attributes.get(i).type;
 			if ((mask & type) == type) {
 				attributes.removeIndex(i);
