@@ -53,7 +53,7 @@ public class TexturePackerFileProcessor extends FileProcessor {
 		this.packFileName = packFileName;
 
 		setFlattenOutput(true);
-		addInputSuffix(".png", ".jpg");
+		addInputSuffix(".png", ".jpg", ".jpeg");
 	}
 
 	public ArrayList<Entry> process (File inputFile, File outputRoot) throws Exception {
@@ -130,7 +130,7 @@ public class TexturePackerFileProcessor extends FileProcessor {
 				String prefix = packFile.getName();
 				int dotIndex = prefix.lastIndexOf('.');
 				if (dotIndex != -1) prefix = prefix.substring(0, dotIndex);
-				deleteProcessor.addInputRegex("(?i)" + prefix + "\\d*\\.(png|jpg)");
+				deleteProcessor.addInputRegex("(?i)" + prefix + "\\d*\\.(png|jpg|jpeg)");
 				deleteProcessor.addInputRegex("(?i)" + prefix + "\\.atlas");
 
 				String dir = packFile.getParent();
@@ -152,7 +152,7 @@ public class TexturePackerFileProcessor extends FileProcessor {
 		while (true) {
 			settings = dirToSettings.get(parent);
 			if (settings != null) break;
-			if (parent.equals(root)) break;
+			if (parent == null || parent.equals(root)) break;
 			parent = parent.getParentFile();
 		}
 		if (settings == null) settings = defaultSettings;
