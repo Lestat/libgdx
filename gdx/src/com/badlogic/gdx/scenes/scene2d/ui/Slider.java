@@ -21,6 +21,7 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -153,7 +154,7 @@ public class Slider extends ProgressBar {
 	}
 
 	/** Returns a snapped value. */
-	private float snap (float value) {
+	protected float snap (float value) {
 		if (snapValues == null) return value;
 		for (int i = 0; i < snapValues.length; i++) {
 			if (Math.abs(value - snapValues[i]) <= threshold) return snapValues[i];
