@@ -277,8 +277,6 @@ public class TextureAtlas implements Disposable {
 		textures.add(texture);
 		AtlasRegion region = new AtlasRegion(texture, x, y, width, height);
 		region.name = name;
-		region.originalWidth = width;
-		region.originalHeight = height;
 		region.index = -1;
 		regions.add(region);
 		return region;
@@ -286,8 +284,12 @@ public class TextureAtlas implements Disposable {
 
 	/** Adds a region to the atlas. The texture for the specified region will be disposed when the atlas is disposed. */
 	public AtlasRegion addRegion (String name, TextureRegion textureRegion) {
-		return addRegion(name, textureRegion.texture, textureRegion.getRegionX(), textureRegion.getRegionY(),
-			textureRegion.getRegionWidth(), textureRegion.getRegionHeight());
+		textures.add(textureRegion.texture);
+		AtlasRegion region = new AtlasRegion(textureRegion);
+		region.name = name;
+		region.index = -1;
+		regions.add(region);
+		return region;
 	}
 
 	/** Returns all regions in the atlas. */
@@ -320,7 +322,7 @@ public class TextureAtlas implements Disposable {
 	/** Returns all regions with the specified name, ordered by smallest to largest {@link AtlasRegion#index index}. This method
 	 * uses string comparison to find the regions, so the result should be cached rather than calling this method multiple times. */
 	public Array<AtlasRegion> findRegions (String name) {
-		Array<AtlasRegion> matched = new Array();
+		Array<AtlasRegion> matched = new Array(AtlasRegion.class);
 		for (int i = 0, n = regions.size; i < n; i++) {
 			AtlasRegion region = regions.get(i);
 			if (region.name.equals(name)) matched.add(new AtlasRegion(region));
@@ -332,7 +334,7 @@ public class TextureAtlas implements Disposable {
 	 * stored rather than calling this method multiple times.
 	 * @see #createSprite(String) */
 	public Array<Sprite> createSprites () {
-		Array sprites = new Array(regions.size);
+		Array sprites = new Array(true, regions.size, Sprite.class);
 		for (int i = 0, n = regions.size; i < n; i++)
 			sprites.add(newSprite(regions.get(i)));
 		return sprites;
@@ -367,7 +369,7 @@ public class TextureAtlas implements Disposable {
 	 * calling this method multiple times.
 	 * @see #createSprite(String) */
 	public Array<Sprite> createSprites (String name) {
-		Array<Sprite> matched = new Array();
+		Array<Sprite> matched = new Array(Sprite.class);
 		for (int i = 0, n = regions.size; i < n; i++) {
 			AtlasRegion region = regions.get(i);
 			if (region.name.equals(name)) matched.add(newSprite(region));
@@ -513,6 +515,14 @@ public class TextureAtlas implements Disposable {
 			originalHeight = region.originalHeight;
 			rotate = region.rotate;
 			splits = region.splits;
+		}
+		
+		public AtlasRegion (TextureRegion region) {
+			setRegion(region);
+			packedWidth = region.getRegionWidth();
+			packedHeight = region.getRegionHeight();
+			originalWidth = packedWidth;
+			originalHeight = packedHeight;
 		}
 
 		@Override

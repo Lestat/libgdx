@@ -93,6 +93,7 @@ public class Pixmap implements Disposable {
 	}
 
 	private Blending blending = Blending.SourceOver;
+	private Filter filter = Filter.BiLinear;
 
 	final Gdx2DPixmap pixmap;
 	int color = 0;
@@ -110,6 +111,7 @@ public class Pixmap implements Disposable {
 	 * {@link Pixmap#drawPixmap(Pixmap, int, int, int, int, int, int, int, int)}.
 	 * @param filter the filter. */
 	public void setFilter (Filter filter) {
+		this.filter = filter;
 		pixmap.setScale(filter == Filter.NearestNeighbour ? Gdx2DPixmap.GDX2D_SCALE_NEAREST : Gdx2DPixmap.GDX2D_SCALE_LINEAR);
 	}
 
@@ -316,6 +318,10 @@ public class Pixmap implements Disposable {
 		disposed = true;
 	}
 
+	public boolean isDisposed () {
+		return disposed;
+	}
+
 	/** Draws a pixel at the given location with the current color.
 	 * 
 	 * @param x the x-coordinate
@@ -372,5 +378,10 @@ public class Pixmap implements Disposable {
 	/** @return the currently set {@link Blending} */
 	public Blending getBlending () {
 		return blending;
+	}
+	
+	/** @return the currently set {@link Filter} */
+	public Filter getFilter (){
+		return filter;
 	}
 }
